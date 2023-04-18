@@ -1,15 +1,93 @@
 #include <stdio.h>
+#include <fstream>
+#include <sstream>
 #include <EdbDataSet.h>
 #include <TCanvas.h>
 #include <TEfficiency.h>
 #include <TH1.h>
+std::string module;
+int zone, plMin, plMax, reco;
+double Xcenter, Ycenter;
+int read_volume_info()
+{
+	std::ifstream file;
+	file.open("volume_info.txt");	
+	if(file.fail())
+	{
+		printf("Failed to open volume_info.txt\n");
+		return 0;
+	}
+	std::string line;
+	int count=0;
+	while (std::getline(file, line))
+	{
+		std::vector<std::string> elems;
+		std::stringstream ss(line);
+		std::string item;
+		while(std::getline(ss, item, '='))
+		{
+			if(!item.empty())
+				elems.push_back(item);
+		}
+		if("module"==elems.at(0))
+		{
+			module = elems.at(1);
+			count++;
+		}
+		if ("zone" == elems.at(0))
+		{
+			zone = std::stoi(elems.at(1));
+			count++;
+		}
+		if ("plMin" == elems.at(0))
+		{
+			plMin = std::stoi(elems.at(1));
+			count++;
+		}
+		if ("plMax" == elems.at(0))
+		{
+			plMax = std::stoi(elems.at(1));
+			count++;
+		}
+		if ("reco" == elems.at(0))
+		{
+			reco = std::stoi(elems.at(1));
+			count++;
+		}
+		if ("Xcenter" == elems.at(0))
+		{
+			Xcenter = std::stod(elems.at(1));
+			count++;
+		}
+		if ("Ycenter" == elems.at(0))
+		{
+			Ycenter = std::stod(elems.at(1));
+			count++;
+		}
+		
+	}
+	// printf("%s,%d,%d,%d,%d,%f,%f\n",module.c_str(),zone,plMin,plMax,reco,Xcenter,Ycenter);
+	if (7 == count)
+	{
+		printf("volume_info.txt read successfully\n");
+		return 1;
+	}
+	else
+	{
+		return 0;
+	}
+}
 
 int main(int argc , char *argv[]){
 	if(argc<=0){
 		printf("Usage : ./efficiency\n");
-		return 1;
+		return 0;
 	}
-
+	if(0==read_volume_info())
+	{
+		printf("Could not read volume_info.txt\n");
+		return 0;
+	}
 	EdbDataProc *dproc = new EdbDataProc;
 	EdbPVRec *pvr = new EdbPVRec;
 	// dproc->ReadTracksTree(*pvr, "linked_tracks.root",Form("nseg>=5&& abs(t.eTX + 0.01) < 0.01 && abs(t.eTY-0.004) < 0.01"));
@@ -26,13 +104,13 @@ int main(int argc , char *argv[]){
 	// TH1D *h_angle_passed = new TH1D("passed",";angle;",10,0,0.5);
 	TH1D *h_angle_total = new TH1D("hist_angle_total", ";tan#theta;", 26, bins);
 	TH1D *h_angle_passed = new TH1D("hist_angle_passed", ";tan#theta;", 26, bins);
-	TH1D *h_plate_total = new TH1D("hist_plate_total", ";plate;", 90, 50,140);
-	TH1D *h_plate_passed = new TH1D("hist_plate_passed", ";plate;", 90, 50,140);
+	TH1D *h_plate_total = new TH1D("hist_plate_total", ";plate;", plMax-plMin, plMin,plMax);
+	TH1D *h_plate_passed = new TH1D("hist_plate_passed", ";plate;", plMax - plMin, plMin, plMax);
 
 	for(int itrk=0; itrk<ntrk; itrk++){
 		EdbTrackP *t = pvr->GetTrack(itrk);
 		int nseg = t->N();
-		for(int iplate=50;iplate<=140;iplate++){
+		for(int iplate=plMin;iplate<=plMax;iplate++){
 			int counts = 0;
 			int hitsOnThePlate = 0;
 			for(int iseg=0;iseg<nseg;iseg++){
@@ -87,5 +165,5 @@ int main(int argc , char *argv[]){
 	TFile fout("efficiency.root","recreate");
 	pEff_angle->Write();
 	fout.Close();
-	return 0;
+	return 1;
 }
