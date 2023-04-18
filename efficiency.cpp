@@ -107,6 +107,9 @@ int main(int argc , char *argv[]){
 	TH1D *h_angle_passed = new TH1D("hist_angle_passed", title+";tan#theta;", 26, bins);
 	TH1D *h_plate_total = new TH1D("hist_plate_total", title+";plate;", plMax-plMin, plMin,plMax);
 	TH1D *h_plate_passed = new TH1D("hist_plate_passed", title + ";plate;", plMax - plMin, plMin, plMax);
+	TFile ntfout("nt_not_passed.root", "recreate");
+	double x, y;
+	TNtuple *nt = new TNtuple("nt","title","trackID:x:y:angle:pl:nseg");
 
 	for(int itrk=0; itrk<ntrk; itrk++){
 		EdbTrackP *t = pvr->GetTrack(itrk);
@@ -130,7 +133,10 @@ int main(int argc , char *argv[]){
 					z2=s->Z();
 					counts++;
 				}
-				if(s->Plate()==iplate) hitsOnThePlate=1;
+				if(s->Plate()==iplate)
+				{
+					hitsOnThePlate=1;
+				}
 			}
 			if(counts==4) {
 				angle = sqrt((x1-x2)*(x1-x2)+(y1-y2)*(y1-y2))/(z2-z1);
@@ -141,11 +147,16 @@ int main(int argc , char *argv[]){
 					h_angle_passed->Fill(angle);
 					h_plate_passed->Fill(iplate);
 				}
+				else
+				{
+					nt->Fill(t->ID(),(x1+x2)/2,(y1+y2)/2,angle,iplate,nseg);
+				}
 			}
 			
 		}
 		
 	}
+	nt->Write();
 	TCanvas *c = new TCanvas();
 	c->Print("hist_efficiency.pdf[");
 	c->SetLogy(1);
