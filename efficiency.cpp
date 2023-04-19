@@ -79,8 +79,8 @@ int read_volume_info()
 }
 
 int main(int argc , char *argv[]){
-	if(argc<=1){
-		printf("Usage : ./efficiency title\n");
+	if(argc<=2){
+		printf("Usage : ./efficiency linked_tracks.root title\n");
 		return 0;
 	}
 	if(0==read_volume_info())
@@ -88,11 +88,12 @@ int main(int argc , char *argv[]){
 		printf("Could not read volume_info.txt\n");
 		return 0;
 	}
-	TString title = argv[1];
+	TString title = argv[2];
+	TString linked_tracks = argv[1];
 	EdbDataProc *dproc = new EdbDataProc;
 	EdbPVRec *pvr = new EdbPVRec;
 	// dproc->ReadTracksTree(*pvr, "linked_tracks.root",Form("nseg>=5&& abs(t.eTX + 0.01) < 0.01 && abs(t.eTY-0.004) < 0.01"));
-	dproc->ReadTracksTree(*pvr, "linked_tracks.root", "nseg>=5");
+	dproc->ReadTracksTree(*pvr, linked_tracks, "nseg>=5");
 	TEfficiency *pEff_angle =0;
 	TEfficiency *pEff_plate =0;
 	
@@ -107,7 +108,7 @@ int main(int argc , char *argv[]){
 	TH1D *h_angle_passed = new TH1D("hist_angle_passed", title+";tan#theta;", 26, bins);
 	TH1D *h_plate_total = new TH1D("hist_plate_total", title+";plate;", plMax-plMin, plMin,plMax);
 	TH1D *h_plate_passed = new TH1D("hist_plate_passed", title + ";plate;", plMax - plMin, plMin, plMax);
-	TFile ntfout("nt_not_passed.root", "recreate");
+	TFile ntfout(Form("nt_not_passed_%s.root",title.Data()), "recreate");
 	double x, y;
 	TNtuple *nt = new TNtuple("nt","title","trackID:x:y:angle:pl:nseg");
 
@@ -158,23 +159,23 @@ int main(int argc , char *argv[]){
 	}
 	nt->Write();
 	TCanvas *c = new TCanvas();
-	c->Print("hist_efficiency.pdf[");
+	c->Print(Form("hist_efficiency_%s.pdf[", title.Data()));
 	c->SetLogy(1);
 	h_angle_total->Draw();
-	c->Print("hist_efficiency.pdf");
+	c->Print(Form("hist_efficiency_%s.pdf",title.Data()));
 	c->SetLogy(0);
 	pEff_angle = new TEfficiency(*h_angle_passed, *h_angle_total);
 	pEff_angle->SetTitle(Form("Efficiency for each angle (%s);tan#theta;efficiency",title.Data()));
 	pEff_angle->Draw();
-	c->Print("hist_efficiency.pdf");
+	c->Print(Form("hist_efficiency_%s.pdf",title.Data()));
 	h_plate_total->Draw();
-	c->Print("hist_efficiency.pdf");
+	c->Print(Form("hist_efficiency_%s.pdf",title.Data()));
 	pEff_plate = new TEfficiency(*h_plate_passed, *h_plate_total);
 	pEff_plate->SetTitle(Form("Efficiency for each plate (%s);tan#theta;efficiency", title.Data()));
 	pEff_plate->Draw();
-	c->Print("hist_efficiency.pdf");
-	c->Print("hist_efficiency.pdf]");
-	TFile fout("efficiency.root","recreate");
+	c->Print(Form("hist_efficiency_%s.pdf",title.Data()));
+	c->Print(Form("hist_efficiency_%s.pdf]", title.Data()));
+	TFile fout(Form("efficiency_%s.root",title.Data()),"recreate");
 	pEff_angle->Write();
 	fout.Close();
 	return 1;
