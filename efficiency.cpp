@@ -101,12 +101,12 @@ int main(int argc , char *argv[]){
 	int ntrk = pvr->Ntracks();
 	double x1, y1, z1, x2, y2, z2, angle;
 	double bins[] = {0,0.01,0.02,0.03,0.04,0.05,0.06,0.07,0.08,0.09,0.1,0.11,0.12,0.13,0.14,0.15,0.16,0.17,0.18,0.19,0.2,0.25,0.3,0.35,0.4,0.45,0.5};
-	
+	int nbins = 26;
 	
 	// TH1D *h_angle_total = new TH1D("total",";angle;",10,0,0.5);
 	// TH1D *h_angle_passed = new TH1D("passed",";angle;",10,0,0.5);
-	TH1D *h_angle_total = new TH1D("hist_angle_total", title+";tan#theta;", 26, bins);
-	TH1D *h_angle_passed = new TH1D("hist_angle_passed", title+";tan#theta;", 26, bins);
+	TH1D *h_angle_total = new TH1D("hist_angle_total", title+";tan#theta;", nbins, bins);
+	TH1D *h_angle_passed = new TH1D("hist_angle_passed", title+";tan#theta;", nbins, bins);
 	TH1D *h_plate_total = new TH1D("hist_plate_total", title+";plate;", plMax-plMin, plMin,plMax);
 	TH1D *h_plate_passed = new TH1D("hist_plate_passed", title + ";plate;", plMax - plMin, plMin, plMax);
 	TFile ntfout(Form("nt_not_passed_%s.root",title.Data()), "recreate");
@@ -179,5 +179,18 @@ int main(int argc , char *argv[]){
 	TFile fout(Form("efficiency_%s.root",title.Data()),"recreate");
 	pEff_angle->Write();
 	fout.Close();
+
+	FILE *ftxt = fopen("efficiency.txt","w");
+	for(int i=1;i<=nbins;i++)
+	{
+		fprintf(ftxt, "%.3f, ",(bins[i]+bins[i-1])/2);
+	}
+	fprintf(ftxt,"\n");
+	for(int i=1;i<=nbins;i++)
+	{
+		fprintf(ftxt,"%f ",pEff_angle->GetEfficiency(i));
+	}
+	fprintf(ftxt,"\n");
+	fclose(ftxt);
 	return 1;
 }
