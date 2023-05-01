@@ -178,6 +178,7 @@ int main(int argc , char *argv[]){
 	c->Print(Form("hist_efficiency_%s.pdf]", title.Data()));
 	TFile fout(Form("efficiency_%s.root",title.Data()),"recreate");
 	pEff_angle->Write();
+	pEff_plate->Write();
 	fout.Close();
 
 	FILE *ftxt = fopen("efficiency.txt","w");
