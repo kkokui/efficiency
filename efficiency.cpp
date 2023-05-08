@@ -172,7 +172,7 @@ int main(int argc , char *argv[]){
 	h_plate_total->Draw();
 	c->Print(Form("hist_efficiency_%s.pdf",title.Data()));
 	pEff_plate = new TEfficiency(*h_plate_passed, *h_plate_total);
-	pEff_plate->SetTitle(Form("Efficiency for each plate (%s);tan#theta;efficiency", title.Data()));
+	pEff_plate->SetTitle(Form("Efficiency for each plate (%s);plate;efficiency", title.Data()));
 	pEff_plate->Draw();
 	c->Print(Form("hist_efficiency_%s.pdf",title.Data()));
 	c->Print(Form("hist_efficiency_%s.pdf]", title.Data()));
