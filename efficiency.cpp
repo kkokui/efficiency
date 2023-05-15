@@ -14,7 +14,7 @@ int main(int argc , char *argv[]){
 	
 	int plMin, plMax;
 	TString filename_linked_tracks = argv[1];
-	TString title = argv[2];
+	TString title = argv[2]; //used for title of histograms and name of output file
 	sscanf(argv[3], "%d", &plMin);
 	sscanf(argv[4], "%d", &plMax);
 	TString cut = "nseg>=5";
